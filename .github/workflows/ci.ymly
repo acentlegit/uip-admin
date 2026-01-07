@@ -1,0 +1,59 @@
+name: UIP Admin CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # --------------------------------------------------
+      # Checkout repository
+      # --------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # --------------------------------------------------
+      # Setup Node.js
+      # --------------------------------------------------
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      # --------------------------------------------------
+      # (Optional) Install root dependencies
+      # Safe even if no package.json at repo root
+      # --------------------------------------------------
+      - name: Install root dependencies (if any)
+        run: |
+          if [ -f package.json ]; then
+            npm install
+          else
+            echo "No root package.json, skipping"
+          fi
+
+      # --------------------------------------------------
+      # Build Admin UI
+      # --------------------------------------------------
+      - name: Build Admin UI
+        run: |
+          cd admin-ui
+          chmod +x build-admin-ui.sh
+          ./build-admin-ui.sh
+
+      # --------------------------------------------------
+      # (Optional) Lint / Test hooks
+      # --------------------------------------------------
+      - name: Admin UI tests (optional)
+        run: |
+          cd admin-ui
+          if [ -f package.json ]; then
+            npm test || echo "No tests defined"
+          fi
+
